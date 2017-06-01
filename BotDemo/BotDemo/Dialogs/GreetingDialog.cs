@@ -1,8 +1,5 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector;
 
@@ -13,8 +10,25 @@ namespace BotDemo.Dialogs
     {
         public async Task StartAsync(IDialogContext context)
         {
-            await context.PostAsync("Hi I'm John Bot");
+            await context.PostAsync("Hi I'm Lucas Bot");
+            await Respond(context);
+
             context.Wait(MessageRecievedAsync);
+        }
+
+        private static async Task Respond(IDialogContext context)
+        {
+            var userName = String.Empty;
+            context.UserData.TryGetValue<string>("Name", out userName);
+            if (string.IsNullOrEmpty(userName))
+            {
+                await context.PostAsync("What is your name?");
+                context.UserData.SetValue<bool>("GetName", true);
+            }
+            else
+            {
+                await context.PostAsync(String.Format("Hi {0}. How can I help you today?", userName));
+            }
         }
 
         public virtual async Task MessageRecievedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
@@ -32,16 +46,8 @@ namespace BotDemo.Dialogs
                 context.UserData.SetValue<bool>("GetName", false);
             }
 
-            if (string.IsNullOrEmpty(userName))
-            {
-                 await context.PostAsync("What is your name?");
-                context.UserData.SetValue<bool>("GetName", true);
-            }
-            else
-            {
-                await context.PostAsync($"Hi {userName}. How can I help you today?");
-            }
-            context.Wait(MessageRecievedAsync);
+            await Respond(context);
+            context.Done(message);
         }
     }
 }
